@@ -25,7 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <receiver android:name=".StreakOWidgetReceiver" android:exported="true">
+        <receiver android:name="com.example.streako.StreakOWidgetReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -33,7 +33,7 @@
                 android:resource="@xml/streak_o_widget_info" />
         </receiver>
 
-        <receiver android:name=".StreakOListWidgetReceiver" android:exported="true">
+        <receiver android:name="com.example.streako.StreakOListWidgetReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

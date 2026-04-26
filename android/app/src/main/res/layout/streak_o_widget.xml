@@ -13,8 +13,7 @@
         android:text="DAILY_CAPACITY"
         android:textColor="#66FFFFFF"
         android:textSize="10sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.1" />
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,15 +28,13 @@
             android:layout_height="wrap_content"
             android:text="00"
             android:textColor="#FFFFFF"
-            android:textSize="48sp"
-            android:textStyle="bold"
-            android:letterSpacing="-0.05" />
+            android:textSize="44sp"
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:layout_marginTop="8dp"
             android:text="%"
             android:textColor="#33FFFFFF"
             android:textSize="18sp"
@@ -47,19 +44,18 @@
     <LinearLayout
         android:id="@+id/widget_progress_bar"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
+        android:layout_height="6dp"
         android:layout_marginTop="8dp"
-        android:orientation="horizontal"
-        android:weightSum="10">
-        <View android:id="@+id/seg_1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
-        <View android:id="@+id/seg_2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
-        <View android:id="@+id/seg_3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
-        <View android:id="@+id/seg_4" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
-        <View android:id="@+id/seg_5" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
-        <View android:id="@+id/seg_6" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
-        <View android:id="@+id/seg_7" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
-        <View android:id="@+id/seg_8" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
-        <View android:id="@+id/seg_9" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="2dp" />
+        android:orientation="horizontal">
+        <View android:id="@+id/seg_1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
+        <View android:id="@+id/seg_2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
+        <View android:id="@+id/seg_3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
+        <View android:id="@+id/seg_4" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
+        <View android:id="@+id/seg_5" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
+        <View android:id="@+id/seg_6" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
+        <View android:id="@+id/seg_7" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
+        <View android:id="@+id/seg_8" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
+        <View android:id="@+id/seg_9" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" android:layout_marginEnd="1dp" />
         <View android:id="@+id/seg_10" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:background="#33FFFFFF" />
     </LinearLayout>
 
