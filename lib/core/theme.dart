@@ -140,6 +140,12 @@ class AppTheme {
         letterSpacing: 1,
       ),
     ),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: _NothingPageTransitionBuilder(),
+        TargetPlatform.iOS: _NothingPageTransitionBuilder(),
+      },
+    ),
   );
 
   static ThemeData darkTheme = ThemeData(
@@ -250,5 +256,38 @@ class AppTheme {
         letterSpacing: 1,
       ),
     ),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: _NothingPageTransitionBuilder(),
+        TargetPlatform.iOS: _NothingPageTransitionBuilder(),
+      },
+    ),
   );
+}
+
+class _NothingPageTransitionBuilder extends PageTransitionsBuilder {
+  const _NothingPageTransitionBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(
+      opacity: animation,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0.05, 0),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutExpo,
+        )),
+        child: child,
+      ),
+    );
+  }
 }

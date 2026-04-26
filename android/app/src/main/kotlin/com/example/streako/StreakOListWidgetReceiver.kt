@@ -20,18 +20,14 @@ class StreakOListWidgetReceiver : HomeWidgetProvider() {
                 val habitsJson = widgetData.getString("pending_habits_json", "[]")
                 try {
                     val habits = JSONArray(habitsJson)
-                    val iconIds = intArrayOf(R.id.habit_icon_1, R.id.habit_icon_2, R.id.habit_icon_3)
-                    val titleIds = intArrayOf(R.id.habit_title_1, R.id.habit_title_2, R.id.habit_title_3)
-                    val itemIds = intArrayOf(R.id.habit_item_1, R.id.habit_item_2, R.id.habit_item_3)
+                    val titleIds = intArrayOf(R.id.habit_title_1, R.id.habit_title_2)
 
-                    for (i in 0 until 3) {
+                    for (i in 0 until 2) {
                         if (i < habits.length()) {
                             val habit = habits.getJSONObject(i)
-                            setTextViewText(iconIds[i], habit.getString("icon"))
                             setTextViewText(titleIds[i], habit.getString("title"))
-                            setViewVisibility(itemIds[i], View.VISIBLE)
                         } else {
-                            setViewVisibility(itemIds[i], View.GONE)
+                            setTextViewText(titleIds[i], "---")
                         }
                     }
                 } catch (e: Exception) {

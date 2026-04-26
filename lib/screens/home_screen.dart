@@ -60,9 +60,28 @@ class HomeScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.baseline,
                           textBaseline: TextBaseline.alphabetic,
                           children: [
-                            Text(
-                              '${(progress * 100).toInt()}',
-                              style: Theme.of(context).textTheme.displayLarge,
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 800),
+                              transitionBuilder: (child, animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.2),
+                                      end: Offset.zero,
+                                    ).animate(CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutExpo,
+                                    )),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                '${(progress * 100).toInt()}',
+                                key: ValueKey((progress * 100).toInt()),
+                                style: Theme.of(context).textTheme.displayLarge,
+                              ),
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -81,28 +100,46 @@ class HomeScreen extends ConsumerWidget {
                           children: List.generate(10, (index) {
                             final isFilled = progress >= (index + 1) / 10;
                             return Expanded(
-                              child: Container(
-                                height: 4,
+                              child: AnimatedContainer(
+                                duration: Duration(milliseconds: 300 + (index * 100)),
+                                curve: Curves.easeOutExpo,
+                                height: 6,
                                 margin: EdgeInsets.only(
                                     right: index == 9 ? 0 : 4),
                                 decoration: BoxDecoration(
                                   color: isFilled
                                       ? scheme.onSurface
                                       : scheme.onSurface.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(2),
+                                  borderRadius: BorderRadius.circular(1),
+                                  boxShadow: isFilled ? [
+                                    BoxShadow(
+                                      color: scheme.onSurface.withValues(alpha: 0.1),
+                                      blurRadius: 4,
+                                      spreadRadius: 1,
+                                    )
+                                  ] : null,
                                 ),
                               ),
                             );
                           }),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          total == 0
-                              ? 'AWAITING_INPUT'
-                              : completed == total
-                                  ? 'OPTIMAL_STATE_REACHED'
-                                  : '$completed OF $total TASKS_SYNCED',
-                          style: Theme.of(context).textTheme.labelSmall,
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              total == 0
+                                  ? 'AWAITING_INPUT'
+                                  : completed == total
+                                      ? 'OPTIMAL_STATE_REACHED'
+                                      : '$completed OF $total TASKS_SYNCED',
+                              style: Theme.of(context).textTheme.labelSmall,
+                            ),
+                            Text(
+                              'SYS_V2.0.4',
+                              style: Theme.of(context).textTheme.labelSmall,
+                            ),
+                          ],
                         ),
                       ],
                     ),

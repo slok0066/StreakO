@@ -55,12 +55,18 @@ class _HabitCardState extends ConsumerState<HabitCard> {
               ),
             ],
           ),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutExpo,
             decoration: BoxDecoration(
-              color: scheme.surfaceContainer,
+              color: isCompleted 
+                  ? scheme.onSurface.withValues(alpha: 0.02) 
+                  : scheme.surfaceContainer,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: scheme.onSurface.withValues(alpha: 0.1),
+                color: isCompleted
+                    ? scheme.onSurface.withValues(alpha: 0.05)
+                    : scheme.onSurface.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -74,13 +80,23 @@ class _HabitCardState extends ConsumerState<HabitCard> {
                     );
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 child: Row(
                   children: [
-                    // Icon/Glyph
-                    Text(
-                      widget.habit.icon,
-                      style: const TextStyle(fontSize: 24),
+                    // Icon/Glyph with subtle dot-matrix background
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: scheme.onSurface.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Center(
+                        child: Text(
+                          widget.habit.icon,
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     // Title/Meta
@@ -93,7 +109,7 @@ class _HabitCardState extends ConsumerState<HabitCard> {
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+                              letterSpacing: 1.0,
                               color: isCompleted
                                   ? scheme.onSurface.withValues(alpha: 0.3)
                                   : scheme.onSurface,
@@ -102,73 +118,78 @@ class _HabitCardState extends ConsumerState<HabitCard> {
                                   : null,
                             ),
                           ),
-                          if (widget.habit.description?.isNotEmpty == true) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              widget.habit.description!.toUpperCase(),
-                              style: GoogleFonts.spaceMono(
-                                fontSize: 10,
-                                color: scheme.onSurface.withValues(alpha: 0.4),
-                                letterSpacing: 0.5,
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Text(
+                                (widget.habit.description ?? 'NO_DESCRIPTION_LOGGED').toUpperCase(),
+                                style: GoogleFonts.spaceMono(
+                                  fontSize: 10,
+                                  color: scheme.onSurface.withValues(alpha: 0.4),
+                                  letterSpacing: 0.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    // Streak (Technical)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: widget.habit.streak > 0
-                            ? scheme.onSurface.withValues(alpha: 0.05)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.bolt,
-                            size: 14,
-                            color: widget.habit.streak > 0
-                                ? scheme.onSurface
-                                : scheme.onSurface.withValues(alpha: 0.2),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${widget.habit.streak}'.padLeft(2, '0'),
-                            style: GoogleFonts.spaceMono(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: widget.habit.streak > 0
-                                  ? scheme.onSurface
-                                  : scheme.onSurface.withValues(alpha: 0.2),
-                            ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '//',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: scheme.onSurface.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'STRK_${widget.habit.streak.toString().padLeft(3, '0')}',
+                                style: GoogleFonts.spaceMono(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: widget.habit.streak > 0
+                                      ? scheme.secondary
+                                      : scheme.onSurface.withValues(alpha: 0.2),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    // Checkbox (Mechanical)
-                    Container(
-                      width: 24,
-                      height: 24,
+                    const SizedBox(width: 12),
+                    // Checkbox (Mechanical / Dot Matrix inspired)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutBack,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
                         color: isCompleted ? scheme.onSurface : Colors.transparent,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(2),
                         border: Border.all(
                           color: isCompleted
                               ? scheme.onSurface
-                              : scheme.onSurface.withValues(alpha: 0.2),
-                          width: 1,
+                              : scheme.onSurface.withValues(alpha: 0.1),
+                          width: 1.5,
                         ),
                       ),
                       child: isCompleted
-                          ? Icon(Icons.check,
-                              color: scheme.surface, size: 16)
-                          : null,
+                          ? Center(
+                              child: Icon(
+                                Icons.square,
+                                color: scheme.surface,
+                                size: 12,
+                              ),
+                            )
+                          : Center(
+                              child: Container(
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: scheme.onSurface.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
                     ),
                   ],
                 ),
