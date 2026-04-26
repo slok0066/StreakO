@@ -19,17 +19,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/logo/logo.png',
-              height: 24,
-              width: 24,
-            ),
-            const SizedBox(width: 12),
-            const Text('STREAKO // SYSTEM'),
-          ],
-        ),
+        title: const Text('STREAKO // SYSTEM'),
         actions: [
           IconButton(
             icon: Icon(themeMode == ThemeMode.dark

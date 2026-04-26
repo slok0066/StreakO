@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
 import '../models/habit.dart';
@@ -5,6 +6,7 @@ import '../models/habit.dart';
 class WidgetService {
   static const String appGroupId = 'com.example.streako';
   static const String androidWidgetName = 'StreakOWidgetReceiver';
+  static const String androidListWidgetName = 'StreakOListWidgetReceiver';
 
   static Future<void> init() async {
     if (kIsWeb) {
@@ -25,24 +27,32 @@ class WidgetService {
       return;
     }
     try {
-      final todayHabits = habits.where((h) => !h.isCompletedToday).toList();
-      
-      String widgetText = 'All done for today! 🎉';
-      if (todayHabits.isNotEmpty) {
-        widgetText = '${todayHabits.length} habits remaining today:\n';
-        for (var i = 0; i < todayHabits.length && i < 3; i++) {
-          widgetText += '${todayHabits[i].icon} ${todayHabits[i].title}\n';
-        }
-        if (todayHabits.length > 3) {
-          widgetText += '...and ${todayHabits.length - 3} more';
-        }
-      }
+      final completedCount = habits.where((h) => h.isCompletedToday).length;
+      final totalCount = habits.length;
+      final progress = totalCount > 0 ? (completedCount / totalCount) : 0.0;
+      final progressPercentage = (progress * 100).toInt();
 
-      await HomeWidget.saveWidgetData<String>('habits_text', widgetText);
-      await HomeWidget.updateWidget(
-        name: androidWidgetName,
-      );
-      debugPrint('WIDGET_SYSTEM: DATA_SYNCED // $widgetText');
+      final pendingHabits = habits.where((h) => !h.isCompletedToday).toList();
+      
+      // Data for Main Progress Widget
+      await HomeWidget.saveWidgetData<int>('progress_percentage', progressPercentage);
+      await HomeWidget.saveWidgetData<String>('status_text', 
+        totalCount == 0 ? 'AWAITING_INPUT' : 
+        completedCount == totalCount ? 'OPTIMAL_STATE' : 
+        '$completedCount OF $totalCount SYNCED');
+
+      // Data for List Widget
+      final habitsJson = pendingHabits.take(3).map((h) => {
+        'title': h.title.toUpperCase(),
+        'icon': h.icon,
+      }).toList();
+      await HomeWidget.saveWidgetData<String>('pending_habits_json', jsonEncode(habitsJson));
+
+      // Trigger updates
+      await HomeWidget.updateWidget(name: androidWidgetName);
+      await HomeWidget.updateWidget(name: androidListWidgetName);
+
+      debugPrint('WIDGET_SYSTEM: DATA_SYNCED // PROGRESS: $progressPercentage%');
     } catch (e) {
       debugPrint('WIDGET_SYSTEM: UPDATE_ERROR // $e');
     }

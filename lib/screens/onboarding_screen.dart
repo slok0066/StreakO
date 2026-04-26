@@ -55,12 +55,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.asset(
-                          'assets/logo/logo.png',
-                          height: 64,
-                          width: 64,
-                        ),
-                        const SizedBox(height: 64),
                         Text(
                           '0${index + 1}',
                           style: GoogleFonts.spaceMono(
