@@ -16,6 +16,7 @@ class StreakOWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val TOGGLE_ACTION = "com.streako.streako.TOGGLE_ACTION"
+        const val FLUTTER_SYNC_ACTION = "com.streako.streako.FLUTTER_SYNC_ACTION"
     }
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
@@ -60,7 +61,7 @@ class StreakOWidgetProvider : AppWidgetProvider() {
 
                     // 2.5 Send a package-restricted broadcast so that the active app (MainActivity)
                     // updates the Hive database instantly in real-time
-                    val syncIntent = Intent(TOGGLE_ACTION).apply {
+                    val syncIntent = Intent(FLUTTER_SYNC_ACTION).apply {
                         putExtra("task_id", taskId)
                         setPackage(context.packageName)
                     }

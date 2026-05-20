@@ -20,7 +20,7 @@ class MainActivity : FlutterActivity() {
     // BroadcastReceiver to capture toggles while the app is active in the background or foreground
     private val widgetToggleReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent != null && intent.action == StreakOWidgetProvider.TOGGLE_ACTION) {
+            if (intent != null && intent.action == StreakOWidgetProvider.FLUTTER_SYNC_ACTION) {
                 val taskId = intent.getStringExtra("task_id")
                 if (taskId != null) {
                     methodChannel?.invokeMethod("widgetToggleTask", taskId)
@@ -45,7 +45,7 @@ class MainActivity : FlutterActivity() {
         handleIntent(intent)
 
         // Register the real-time background sync receiver
-        val filter = IntentFilter(StreakOWidgetProvider.TOGGLE_ACTION)
+        val filter = IntentFilter(StreakOWidgetProvider.FLUTTER_SYNC_ACTION)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(widgetToggleReceiver, filter, Context.RECEIVER_EXPORTED)
         } else {
