@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_item_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:paddingLeft="4dp"
-    android:paddingRight="4dp">
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:paddingLeft="6dp"
+    android:paddingRight="6dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?android:attr/selectableItemBackground">
 
-    <!-- Tactile Circle Checkbox -->
-    <TextView
+    <!-- Tactile Circle Checkbox (ImageView) -->
+    <ImageView
         android:id="@+id/widget_item_checkbox"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:gravity="center"
-        android:textColor="#333333"
-        android:textSize="16sp"
-        android:text="○"
-        android:layout_marginRight="8dp"/>
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/widget_checkbox_unchecked"
+        android:layout_marginRight="10dp"
+        android:clickable="false"/>
 
     <!-- Task Title -->
     <TextView
@@ -26,9 +29,27 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Task Title"
         android:textColor="#E8E8E8"
         android:textSize="13sp"
         android:ellipsize="end"
-        android:maxLines="1"/>
+        android:maxLines="1"
+        android:clickable="false"/>
+
+    <!-- Streak Count Badge -->
+    <TextView
+        android:id="@+id/widget_item_streak"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/widget_streak_badge"
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:textColor="#E57C23"
+        android:textSize="10sp"
+        android:fontFamily="sans-serif-monospace"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:layout_marginLeft="8dp"
+        android:clickable="false"/>
 </LinearLayout>

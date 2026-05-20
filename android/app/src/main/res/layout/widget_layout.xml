@@ -2,12 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
+    android:background="@drawable/widget_background"
     android:orientation="vertical"
     android:padding="12dp">
 
     <!-- Header -->
     <LinearLayout
+        android:id="@+id/widget_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -18,14 +19,14 @@
         <FrameLayout
             android:layout_width="6dp"
             android:layout_height="6dp"
-            android:background="#D71921"
+            android:background="@drawable/widget_status_dot"
             android:layout_marginRight="6dp"/>
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="STREAKO"
+            android:text="streakO"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold"

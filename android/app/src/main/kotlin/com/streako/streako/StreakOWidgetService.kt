@@ -2,6 +2,8 @@ package com.streako.streako
 
 import android.content.Context
 import android.content.Intent
+import android.text.Html
+import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import org.json.JSONArray
@@ -17,7 +19,7 @@ class StreakOWidgetService : RemoteViewsService() {
 class StreakOWidgetFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
     private var tasksList = ArrayList<WidgetTask>()
 
-    data class WidgetTask(val id: String, val title: String, val isCompleted: Boolean)
+    data class WidgetTask(val id: String, val title: String, val isCompleted: Boolean, val streakCount: Int)
 
     override fun onCreate() {
         loadData()
@@ -41,27 +43,47 @@ class StreakOWidgetFactory(private val context: Context) : RemoteViewsService.Re
 
         val task = tasksList[position]
         
-        // Bind title
-        views.setTextViewText(R.id.widget_item_title, task.title)
-        
-        // Bind Nothing dot-style checkbox status
-        if (task.isCompleted) {
-            views.setTextViewText(R.id.widget_item_checkbox, "●")
-            views.setTextColor(R.id.widget_item_checkbox, android.graphics.Color.parseColor("#4A9E5C")) // Accent Success Green
-            views.setTextColor(R.id.widget_item_title, android.graphics.Color.parseColor("#666666")) // Strikeout Color
+        // Bind HTML-formatted title with strikethrough for completed tasks
+        val formattedTitle = if (task.isCompleted) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                Html.fromHtml("<s>${task.title}</s>", Html.FROM_HTML_MODE_LEGACY)
+            } else {
+                @Suppress("DEPRECATION")
+                Html.fromHtml("<s>${task.title}</s>")
+            }
         } else {
-            views.setTextViewText(R.id.widget_item_checkbox, "○")
-            views.setTextColor(R.id.widget_item_checkbox, android.graphics.Color.parseColor("#333333")) // Medium Boundary Gray
+            task.title
+        }
+        views.setTextViewText(R.id.widget_item_title, formattedTitle)
+        
+        // Bind custom XML checkbox drawables
+        if (task.isCompleted) {
+            views.setImageViewResource(R.id.widget_item_checkbox, R.drawable.widget_checkbox_checked)
+            views.setTextColor(R.id.widget_item_title, android.graphics.Color.parseColor("#666666")) // Strikeout Grey
+        } else {
+            views.setImageViewResource(R.id.widget_item_checkbox, R.drawable.widget_checkbox_unchecked)
             views.setTextColor(R.id.widget_item_title, android.graphics.Color.parseColor("#E8E8E8")) // Solid Display White
         }
 
-        // Attach click fill-in intent
+        // Bind Streak Badge
+        if (task.streakCount > 0) {
+            views.setViewVisibility(R.id.widget_item_streak, View.VISIBLE)
+            views.setTextViewText(R.id.widget_item_streak, "⚡ ${task.streakCount}")
+            if (task.isCompleted) {
+                views.setTextColor(R.id.widget_item_streak, android.graphics.Color.parseColor("#555555")) // Strikeout Grey
+            } else {
+                views.setTextColor(R.id.widget_item_streak, android.graphics.Color.parseColor("#E57C23")) // Flame color
+            }
+        } else {
+            views.setViewVisibility(R.id.widget_item_streak, View.GONE)
+        }
+
+        // Attach click fill-in intent to the entire list item row container
         val fillIntent = Intent().apply {
             putExtra("task_id", task.id)
             putExtra("action", "toggle_task")
         }
-        views.setOnClickFillInIntent(R.id.widget_item_checkbox, fillIntent)
-        views.setOnClickFillInIntent(R.id.widget_item_title, fillIntent)
+        views.setOnClickFillInIntent(R.id.widget_item_root, fillIntent)
 
         return views
     }
@@ -93,8 +115,9 @@ class StreakOWidgetFactory(private val context: Context) : RemoteViewsService.Re
                 val id = obj.optString("id", "")
                 val title = obj.optString("title", "")
                 val isCompleted = obj.optBoolean("isCompleted", false)
+                val streakCount = obj.optInt("streakCount", 0)
                 if (id.isNotEmpty()) {
-                    tasksList.add(WidgetTask(id, title, isCompleted))
+                    tasksList.add(WidgetTask(id, title, isCompleted, streakCount))
                 }
             }
         } catch (e: JSONException) {

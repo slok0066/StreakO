@@ -64,8 +64,8 @@ class NotificationService {
   Future<void> _createNotificationChannel() async {
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'streako_reminders_channel',
-      'StreakO Reminders',
-      description: 'Channel for StreakO task reminders',
+      'streakO Reminders',
+      description: 'Channel for streakO task reminders',
       importance: Importance.max,
       playSound: true,
       enableVibration: true,
@@ -127,8 +127,8 @@ class NotificationService {
     final id = _getNotificationId(task.id);
     const androidDetails = AndroidNotificationDetails(
       'streako_reminders_channel',
-      'StreakO Reminders',
-      channelDescription: 'Channel for StreakO task reminders',
+      'streakO Reminders',
+      channelDescription: 'Channel for streakO task reminders',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
@@ -166,7 +166,7 @@ class NotificationService {
       // Using zonedSchedule for precise notification scheduling
       await _notificationsPlugin.zonedSchedule(
         id: id,
-        title: 'StreakO Reminder: ${task.title}',
+        title: 'streakO Reminder: ${task.title}',
         body: task.description.isNotEmpty ? task.description : 'Keep your streak alive!',
         scheduledDate: tzScheduledDate,
         notificationDetails: notificationDetails,
@@ -196,7 +196,7 @@ class NotificationService {
 
       await _notificationsPlugin.periodicallyShow(
         id: id,
-        title: 'StreakO Check-in: ${task.title}',
+        title: 'streakO Check-in: ${task.title}',
         body: task.description.isNotEmpty ? task.description : 'Track your progress now!',
         repeatInterval: interval,
         notificationDetails: notificationDetails,

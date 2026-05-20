@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(width: AppSpacing.sm),
                             Text(
-                              'StreakO',
+                              'streakO',
                               style: GoogleFonts.spaceGrotesk(
                                 color: isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay,
                                 fontSize: 28.0,

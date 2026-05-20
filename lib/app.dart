@@ -18,7 +18,7 @@ class StreakoApp extends StatelessWidget {
           WidgetService.initialize(provider);
 
           return MaterialApp(
-            title: 'StreakO',
+            title: 'streakO',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.getLightTheme(),
             darkTheme: AppTheme.getDarkTheme(),

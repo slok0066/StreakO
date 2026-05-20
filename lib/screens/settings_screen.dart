@@ -165,7 +165,7 @@ class SettingsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'StreakO Mobile',
+                              'streakO Mobile',
                               style: GoogleFonts.spaceGrotesk(
                                 color: textPrimaryColor,
                                 fontSize: 16.0,

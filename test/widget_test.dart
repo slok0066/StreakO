@@ -9,11 +9,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:streako/app.dart';
 
 void main() {
-  testWidgets('StreakO dashboard smoke test', (WidgetTester tester) async {
+  testWidgets('streakO dashboard smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const StreakoApp());
 
-    // Verify that our app name StreakO exists
-    expect(find.text('StreakO'), findsOneWidget);
+    // Verify that our app name streakO exists
+    expect(find.text('streakO'), findsOneWidget);
   });
 }

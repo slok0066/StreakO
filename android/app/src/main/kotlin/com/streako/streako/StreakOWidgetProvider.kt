@@ -3,6 +3,7 @@ package com.streako.streako
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -28,16 +29,48 @@ class StreakOWidgetProvider : AppWidgetProvider() {
         if (intent.action == TOGGLE_ACTION) {
             val taskId = intent.getStringExtra("task_id")
             if (taskId != null) {
-                // Route task toggle action to MainActivity
-                val launchIntent = Intent(context, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    putExtra("action", "toggle_task")
-                    putExtra("task_id", taskId)
+                // 1. Read and update the task list in SharedPreferences directly in the background
+                val prefs = context.getSharedPreferences("streako_widget_prefs", Context.MODE_PRIVATE)
+                val jsonString = prefs.getString("widget_tasks", "[]") ?: "[]"
+                try {
+                    val jsonArray = JSONArray(jsonString)
+                    var updated = false
+                    for (i in 0 until jsonArray.length()) {
+                        val obj = jsonArray.getJSONObject(i)
+                        if (obj.optString("id") == taskId) {
+                            val currentStatus = obj.optBoolean("isCompleted", false)
+                            obj.put("isCompleted", !currentStatus)
+                            updated = true
+                            break
+                        }
+                    }
+                    if (updated) {
+                        prefs.edit().putString("widget_tasks", jsonArray.toString()).apply()
+                    }
+
+                    // 2. Add this task ID to the set of pending background toggles
+                    val pendingTogglesSet = prefs.getStringSet("pending_toggles", null) ?: HashSet<String>()
+                    val newPending = HashSet<String>(pendingTogglesSet)
+                    if (newPending.contains(taskId)) {
+                        newPending.remove(taskId) // Toggle back and forth cancels out
+                    } else {
+                        newPending.add(taskId)
+                    }
+                    prefs.edit().putStringSet("pending_toggles", newPending).apply()
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                context.startActivity(launchIntent)
+
+                // 3. Notify widget list view to redraw instantly on the home screen
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                val componentName = ComponentName(context, StreakOWidgetProvider::class.java)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list)
             }
+        } else {
+            super.onReceive(context, intent)
         }
-        super.onReceive(context, intent)
     }
 
     private fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
@@ -50,6 +83,16 @@ class StreakOWidgetProvider : AppWidgetProvider() {
         }
         views.setRemoteAdapter(R.id.widget_list, intent)
         views.setEmptyView(R.id.widget_list, R.id.widget_empty)
+
+        // Click intent to launch the app when tapping the widget header
+        val launchIntent = Intent(context, MainActivity::class.java)
+        val launchFlags = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        val headerPendingIntent = PendingIntent.getActivity(context, 1, launchIntent, launchFlags)
+        views.setOnClickPendingIntent(R.id.widget_header, headerPendingIntent)
 
         // Read preferences to toggle empty view state correctly
         val prefs = context.getSharedPreferences("streako_widget_prefs", Context.MODE_PRIVATE)
@@ -67,7 +110,7 @@ class StreakOWidgetProvider : AppWidgetProvider() {
             e.printStackTrace()
         }
 
-        // Click template pending intent routing
+        // Click template pending intent routing for list items
         val clickIntent = Intent(context, StreakOWidgetProvider::class.java).apply {
             action = TOGGLE_ACTION
         }
