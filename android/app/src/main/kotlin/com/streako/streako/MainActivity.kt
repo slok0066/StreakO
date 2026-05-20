@@ -111,6 +111,13 @@ class MainActivity : FlutterActivity() {
 
     private fun updateSharedPrefsAndWidget(jsonString: String) {
         val prefs = getSharedPreferences("streako_widget_prefs", Context.MODE_PRIVATE)
+        
+        // Prevent redundant redraws and flickering if the synchronized state is identical to SharedPreferences
+        val existingJson = prefs.getString("widget_tasks", "")
+        if (existingJson == jsonString) {
+            return
+        }
+        
         prefs.edit().putString("widget_tasks", jsonString).apply()
 
         // Notify app widgets that the list data factory changed
