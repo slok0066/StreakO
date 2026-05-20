@@ -1,203 +1,525 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../core/theme.dart';
-import '../providers/habit_provider.dart';
-import '../widgets/habit_card.dart';
-import '../widgets/dotted_background.dart';
-import 'add_habit_screen.dart';
-import 'stats_screen.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import '../providers/task_provider.dart';
+import '../utils/constants.dart';
+import '../utils/date_utils.dart';
+import '../widgets/streak_card.dart';
+import '../widgets/task_card.dart';
+import '../widgets/app_button.dart';
+import '../services/notification_service.dart';
+import 'add_task_screen.dart';
+import 'edit_task_screen.dart';
+import 'task_detail_screen.dart';
+import 'settings_screen.dart';
 
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final habitsAsync = ref.watch(habitStreamProvider);
-    final themeMode = ref.watch(themeModeProvider);
-    final scheme = Theme.of(context).colorScheme;
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late StreamSubscription<String> _notificationSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen to notification clicks to open detail screen
+    _notificationSubscription = NotificationService().onNotificationTap.listen((taskId) {
+      _openTaskDetails(taskId);
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription.cancel();
+    super.dispose();
+  }
+
+  void _openTaskDetails(String taskId) {
+    // Find task in provider
+    final provider = Provider.of<TaskProvider>(context, listen: false);
+    final task = provider.getTaskById(taskId);
+    if (task != null) {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, anim1, anim2) => TaskDetailScreen(taskId: taskId),
+          transitionsBuilder: (context, anim1, anim2, child) {
+            return FadeTransition(opacity: anim1, child: child);
+          },
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<TaskProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final textPrimaryColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
+    final textSecondaryColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
+    final borderVisibleColor = isDark ? AppColors.darkBorderVisible : AppColors.lightBorderVisible;
+    final surfaceColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('STREAKO // SYSTEM'),
-        actions: [
-          IconButton(
-            icon: Icon(themeMode == ThemeMode.dark
-                ? Icons.light_mode_outlined
-                : Icons.dark_mode_outlined),
-            onPressed: () =>
-                ref.read(themeModeProvider.notifier).toggleTheme(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart_outlined),
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const StatsScreen())),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: DottedBackground(
-        child: habitsAsync.when(
-          data: (habits) {
-            final completed = habits.where((h) => h.isCompletedToday).length;
-            final total = habits.length;
-            final progress = total > 0 ? (completed / total) : 0.0;
-
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 32, 24, 48),
-                    child: Column(
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            // Hot reload/refresh tasks
+            provider.refreshTasks();
+          },
+          color: AppColors.accent,
+          backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Header Area
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'DAILY_CAPACITY',
-                          style: Theme.of(context).textTheme.labelSmall,
+                          AppDateUtils.formatDate(DateTime.now()),
+                          style: GoogleFonts.spaceMono(
+                            color: textSecondaryColor,
+                            fontSize: 11.0,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.08 * 11.0,
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: AppSpacing.xs2),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 800),
-                              transitionBuilder: (child, animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.2),
-                                      end: Offset.zero,
-                                    ).animate(CurvedAnimation(
-                                      parent: animation,
-                                      curve: Curves.easeOutExpo,
-                                    )),
-                                    child: child,
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                '${(progress * 100).toInt()}',
-                                key: ValueKey((progress * 100).toInt()),
-                                style: Theme.of(context).textTheme.displayLarge,
+                            Container(
+                              width: 32.0,
+                              height: 32.0,
+                              decoration: BoxDecoration(
+                                color: isDark ? AppColors.darkSurfaceRaised : AppColors.lightSurfaceRaised,
+                                border: Border.all(
+                                  color: borderVisibleColor,
+                                  width: 1.0,
+                                ),
+                                borderRadius: BorderRadius.circular(8.0),
                               ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '%',
-                              style: GoogleFonts.spaceMono(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: scheme.onSurface.withValues(alpha: 0.4),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        // Segmented Progress Bar
-                        Row(
-                          children: List.generate(10, (index) {
-                            final isFilled = progress >= (index + 1) / 10;
-                            return Expanded(
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 300 + (index * 100)),
-                                curve: Curves.easeOutExpo,
-                                height: 6,
-                                margin: EdgeInsets.only(
-                                    right: index == 9 ? 0 : 4),
-                                decoration: BoxDecoration(
-                                  color: isFilled
-                                      ? scheme.onSurface
-                                      : scheme.onSurface.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(1),
-                                  boxShadow: isFilled ? [
-                                    BoxShadow(
-                                      color: scheme.onSurface.withValues(alpha: 0.1),
-                                      blurRadius: 4,
-                                      spreadRadius: 1,
-                                    )
-                                  ] : null,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(7.0),
+                                child: Image.asset(
+                                  'assets/logo/logo.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Icon(
+                                      LucideIcons.flame,
+                                      size: 16.0,
+                                      color: AppColors.accent,
+                                    );
+                                  },
                                 ),
                               ),
-                            );
-                          }),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              total == 0
-                                  ? 'AWAITING_INPUT'
-                                  : completed == total
-                                      ? 'OPTIMAL_STATE_REACHED'
-                                      : '$completed OF $total TASKS_SYNCED',
-                              style: Theme.of(context).textTheme.labelSmall,
                             ),
+                            const SizedBox(width: AppSpacing.sm),
                             Text(
-                              'SYS_V2.0.4',
-                              style: Theme.of(context).textTheme.labelSmall,
+                              'StreakO',
+                              style: GoogleFonts.spaceGrotesk(
+                                color: isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay,
+                                fontSize: 28.0,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.5,
+                              ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                  ),
-                ),
-                if (habits.isEmpty)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 48,
-                            color: scheme.onSurface.withValues(alpha: 0.2),
+                    Row(
+                      children: [
+                        // Theme Switcher Button
+                        IconButton(
+                          icon: Icon(
+                            isDark ? LucideIcons.sun : LucideIcons.moon,
+                            color: textPrimaryColor,
+                            size: 22.0,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'NO_HABITS_DETECTED',
-                            style: GoogleFonts.spaceMono(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                              color: scheme.onSurface.withValues(alpha: 0.5),
+                          onPressed: () {
+                            provider.toggleTheme();
+                          },
+                          tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+                        ),
+                        // Settings Gear Button
+                        IconButton(
+                          icon: Icon(
+                            LucideIcons.settings,
+                            color: textPrimaryColor,
+                            size: 22.0,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, anim1, anim2) => const SettingsScreen(),
+                                transitionsBuilder: (context, anim1, anim2, child) {
+                                  return FadeTransition(opacity: anim1, child: child);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.lg),
+
+                // 2. Streak Widget
+                StreakCard(streakCount: provider.totalAppStreak),
+                const SizedBox(height: AppSpacing.md),
+
+                // 3. Stats Grid
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          border: Border.all(color: borderColor, width: 1.0),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'COMPLETED TODAY',
+                              style: GoogleFonts.spaceMono(
+                                color: textSecondaryColor,
+                                fontSize: 9.0,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.08 * 9.0,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              provider.totalCompletedToday.toString().padLeft(2, '0'),
+                              style: GoogleFonts.spaceMono(
+                                color: isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay,
+                                fontSize: 28.0,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: surfaceColor,
+                          border: Border.all(color: borderColor, width: 1.0),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PENDING TASKS',
+                              style: GoogleFonts.spaceMono(
+                                color: textSecondaryColor,
+                                fontSize: 9.0,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.08 * 9.0,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              provider.pendingCount.toString().padLeft(2, '0'),
+                              style: GoogleFonts.spaceMono(
+                                color: provider.pendingCount > 0 ? AppColors.accent : textPrimaryColor,
+                                fontSize: 28.0,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+
+                // 4. Section Divider Label
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'YOUR TASKS'.toUpperCase(),
+                      style: GoogleFonts.spaceMono(
+                        color: textSecondaryColor,
+                        fontSize: 11.0,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.08 * 11.0,
+                      ),
+                    ),
+                    // Active filter indicator text
+                    Text(
+                      '${provider.filteredTasks.length} ITEMS',
+                      style: GoogleFonts.spaceMono(
+                        color: textSecondaryColor,
+                        fontSize: 11.0,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+
+                // 5. Filter Tags row
+                SizedBox(
+                  height: 34.0,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: TaskFilter.values.map((filter) {
+                      final isSelected = provider.currentFilter == filter;
+                      String label = filter.name.toUpperCase();
+                      if (filter == TaskFilter.high) label = 'HIGH PRIORITY';
+
+                      return Container(
+                        margin: const EdgeInsets.only(right: AppSpacing.sm),
+                        child: GestureDetector(
+                          onTap: () => provider.setFilter(filter),
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isSelected
+                                    ? (isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay)
+                                    : borderVisibleColor,
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(999.0),
+                            ),
+                            child: Text(
+                              label,
+                              style: GoogleFonts.spaceMono(
+                                color: isSelected
+                                    ? (isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay)
+                                    : textSecondaryColor,
+                                fontSize: 10.0,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.04 * 10.0,
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, i) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: HabitCard(habit: habits[i]),
                         ),
-                        childCount: habits.length,
-                      ),
-                    ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // 6. Tasks List or Empty State
+                if (provider.filteredTasks.isEmpty)
+                  _buildEmptyState(context, isDark, textSecondaryColor, provider)
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: provider.filteredTasks.length,
+                    itemBuilder: (context, index) {
+                      final task = provider.filteredTasks[index];
+                      return TaskCard(
+                        task: task,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, anim1, anim2) => TaskDetailScreen(taskId: task.id),
+                              transitionsBuilder: (context, anim1, anim2, child) {
+                                return FadeTransition(opacity: anim1, child: child);
+                              },
+                            ),
+                          );
+                        },
+                        onToggleComplete: () {
+                          provider.toggleTaskCompletion(task.id);
+                        },
+                        onEdit: () {
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              pageBuilder: (context, anim1, anim2) => EditTaskScreen(taskId: task.id),
+                              transitionsBuilder: (context, anim1, anim2, child) {
+                                return FadeTransition(opacity: anim1, child: child);
+                              },
+                            ),
+                          );
+                        },
+                        onDelete: () {
+                          _showDeleteConfirmationDialog(context, task.id, provider);
+                        },
+                      );
+                    },
                   ),
               ],
-            );
-          },
-          loading: () =>
-              const Center(child: CircularProgressIndicator(strokeWidth: 1)),
-          error: (e, _) => Center(child: Text('ERROR: $e')),
+            ),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AddHabitScreen()),
+        onPressed: () {
+          Navigator.push(
+            context,
+            PageRouteBuilder(
+              pageBuilder: (context, anim1, anim2) => const AddTaskScreen(),
+              transitionsBuilder: (context, anim1, anim2, child) {
+                return FadeTransition(opacity: anim1, child: child);
+              },
+            ),
+          );
+        },
+        backgroundColor: isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay,
+        shape: const CircleBorder(),
+        elevation: 0,
+        child: Icon(
+          LucideIcons.plus,
+          color: isDark ? AppColors.darkBlack : AppColors.lightBlack,
+          size: 24.0,
         ),
-        child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, bool isDark, Color textSecondaryColor, TaskProvider provider) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl3),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            LucideIcons.calendarCheck,
+            size: 48.0,
+            color: isDark ? AppColors.darkTextDisabled : AppColors.lightTextDisabled,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'No tasks yet'.toUpperCase(),
+            style: GoogleFonts.spaceMono(
+              color: textSecondaryColor,
+              fontSize: 13.0,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.08 * 13.0,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Text(
+              'Add your first task and start your streak.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.spaceGrotesk(
+                color: isDark ? AppColors.darkTextDisabled : AppColors.lightTextDisabled,
+                fontSize: 14.0,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          AppButton(
+            label: 'ADD FIRST TASK',
+            width: 200,
+            onPressed: () {
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, anim1, anim2) => const AddTaskScreen(),
+                  transitionsBuilder: (context, anim1, anim2, child) {
+                    return FadeTransition(opacity: anim1, child: child);
+                  },
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, String taskId, TaskProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            side: BorderSide(
+              color: isDark ? AppColors.darkBorderVisible : AppColors.lightBorderVisible,
+              width: 1.0,
+            ),
+          ),
+          title: Text(
+            'DELETE TASK',
+            style: GoogleFonts.spaceMono(
+              color: isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay,
+              fontSize: 16.0,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to permanently delete this task? This action will reset any streak active on it.',
+            style: GoogleFonts.spaceGrotesk(
+              color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+              fontSize: 14.0,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'CANCEL',
+                style: GoogleFonts.spaceMono(
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
+                'DELETE',
+                style: GoogleFonts.spaceMono(
+                  color: AppColors.accent,
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              onPressed: () {
+                provider.deleteTask(taskId);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
