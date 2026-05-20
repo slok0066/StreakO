@@ -78,12 +78,14 @@ class StreakOWidgetFactory(private val context: Context) : RemoteViewsService.Re
             views.setViewVisibility(R.id.widget_item_streak, View.GONE)
         }
 
-        // Attach click fill-in intent to the entire list item row container
+        // Attach click fill-in intent to all child targets to guarantee touch captures
         val fillIntent = Intent().apply {
             putExtra("task_id", task.id)
             putExtra("action", "toggle_task")
         }
         views.setOnClickFillInIntent(R.id.widget_item_root, fillIntent)
+        views.setOnClickFillInIntent(R.id.widget_item_checkbox, fillIntent)
+        views.setOnClickFillInIntent(R.id.widget_item_title, fillIntent)
 
         return views
     }
