@@ -15,7 +15,7 @@
         android:layout_marginBottom="8dp">
 
         <!-- Signal Light Dot -->
-        <View
+        <FrameLayout
             android:layout_width="6dp"
             android:layout_height="6dp"
             android:background="#D71921"
@@ -42,7 +42,7 @@
     </LinearLayout>
 
     <!-- Thin Divider -->
-    <View
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#222222"
