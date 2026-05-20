@@ -24,6 +24,17 @@ class MainActivity : FlutterActivity() {
                 val taskId = intent.getStringExtra("task_id")
                 if (taskId != null) {
                     methodChannel?.invokeMethod("widgetToggleTask", taskId)
+                    
+                    // Remove from pending_toggles so it doesn't get double-toggled when app resumes
+                    if (context != null) {
+                        val prefs = context.getSharedPreferences("streako_widget_prefs", Context.MODE_PRIVATE)
+                        val pendingTogglesSet = prefs.getStringSet("pending_toggles", null)
+                        if (pendingTogglesSet != null && pendingTogglesSet.contains(taskId)) {
+                            val newPending = HashSet<String>(pendingTogglesSet)
+                            newPending.remove(taskId)
+                            prefs.edit().putStringSet("pending_toggles", newPending).apply()
+                        }
+                    }
                 }
             }
         }

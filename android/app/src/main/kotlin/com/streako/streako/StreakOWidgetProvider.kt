@@ -58,6 +58,14 @@ class StreakOWidgetProvider : AppWidgetProvider() {
                     }
                     prefs.edit().putStringSet("pending_toggles", newPending).apply()
 
+                    // 2.5 Send a package-restricted broadcast so that the active app (MainActivity)
+                    // updates the Hive database instantly in real-time
+                    val syncIntent = Intent(TOGGLE_ACTION).apply {
+                        putExtra("task_id", taskId)
+                        setPackage(context.packageName)
+                    }
+                    context.sendBroadcast(syncIntent)
+
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
