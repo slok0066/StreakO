@@ -31,6 +31,8 @@ class TaskProvider extends ChangeNotifier {
     await _notifications.init();
     _loadTasks();
     _checkPermissions();
+    // Initialize widget service after tasks are fully loaded to avoid startup race conditions
+    WidgetService.initialize(this);
   }
 
   void _loadTasks() {

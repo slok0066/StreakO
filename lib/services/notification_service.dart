@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import '../models/task_model.dart';
@@ -23,11 +24,17 @@ class NotificationService {
   Future<void> init() async {
     // 1. Initialize timezone database
     tz.initializeTimeZones();
-    // Default to UTC or local location if available
     try {
-      tz.setLocalLocation(tz.getLocation('UTC')); // Fallback UTC
+      final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      debugPrint('Dynamic local timezone configured: $timeZoneName');
     } catch (e) {
-      debugPrint('Error setting timezone location: $e');
+      debugPrint('Error setting dynamic local timezone, falling back to UTC: $e');
+      try {
+        tz.setLocalLocation(tz.getLocation('UTC'));
+      } catch (err) {
+        debugPrint('Error setting UTC timezone location: $err');
+      }
     }
 
     // 2. Configure Android settings
@@ -84,6 +91,14 @@ class NotificationService {
     if (androidImplementation != null) {
       final granted = await androidImplementation.requestNotificationsPermission();
       androidGranted = granted ?? false;
+
+      // Request exact alarm permission on Android 13+ to ensure precise alarm scheduling
+      try {
+        final exactAlarmGranted = await androidImplementation.requestExactAlarmsPermission();
+        debugPrint('Exact alarm permission status: $exactAlarmGranted');
+      } catch (e) {
+        debugPrint('Error requesting exact alarm permission: $e');
+      }
     }
 
     // Request permission for iOS

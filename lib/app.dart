@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'providers/task_provider.dart';
 import 'screens/home_screen.dart';
 import 'utils/constants.dart';
-import 'services/widget_service.dart';
 
 class StreakoApp extends StatelessWidget {
   const StreakoApp({super.key});
@@ -14,9 +13,6 @@ class StreakoApp extends StatelessWidget {
       create: (_) => TaskProvider(),
       child: Consumer<TaskProvider>(
         builder: (context, provider, child) {
-          // Initialize native home screen widget channel
-          WidgetService.initialize(provider);
-
           return MaterialApp(
             title: 'streakO',
             debugShowCheckedModeBanner: false,
