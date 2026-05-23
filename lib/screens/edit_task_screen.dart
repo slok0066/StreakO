@@ -30,7 +30,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   bool _reminderEnabled = false;
   ReminderType _reminderType = ReminderType.fixed;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 12, minute: 0);
-  int _intervalHours = 1;
+  int _intervalMinutes = 60;
 
   String? _titleError;
   bool _isInitialized = false;
@@ -53,8 +53,8 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
         if (task.reminderTime != null) {
           _reminderTime = task.reminderTime!;
         }
-        if (task.intervalHours != null) {
-          _intervalHours = task.intervalHours!;
+        if (task.intervalMinutes != null) {
+          _intervalMinutes = task.intervalMinutes!;
         }
       }
       _isInitialized = true;
@@ -139,7 +139,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       reminderEnabled: _reminderEnabled,
       reminderTime: _reminderType == ReminderType.fixed ? _reminderTime : null,
       reminderType: _reminderType,
-      intervalHours: _reminderType == ReminderType.interval ? _intervalHours : null,
+      intervalMinutes: _reminderType == ReminderType.interval ? _intervalMinutes : null,
       repeatType: _selectedRepeat,
       customDays: _selectedRepeat == RepeatType.custom ? _customDays : const [],
       priority: _selectedPriority,
@@ -407,10 +407,10 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                 },
                 time: _reminderTime,
                 onTimeTap: () => _selectTime(context),
-                intervalHours: _intervalHours,
-                onIntervalHoursChanged: (hours) {
+                intervalMinutes: _intervalMinutes,
+                onIntervalMinutesChanged: (minutes) {
                   setState(() {
-                    _intervalHours = hours;
+                    _intervalMinutes = minutes;
                   });
                 },
               ),

@@ -28,7 +28,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   bool _reminderEnabled = false;
   ReminderType _reminderType = ReminderType.fixed;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 12, minute: 0);
-  int _intervalHours = 1;
+  int _intervalMinutes = 60;
 
   String? _titleError;
 
@@ -110,7 +110,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       reminderEnabled: _reminderEnabled,
       reminderTime: _reminderType == ReminderType.fixed ? _reminderTime : null,
       reminderType: _reminderType,
-      intervalHours: _reminderType == ReminderType.interval ? _intervalHours : null,
+      intervalMinutes: _reminderType == ReminderType.interval ? _intervalMinutes : null,
       repeatType: _selectedRepeat,
       customDays: _selectedRepeat == RepeatType.custom ? _customDays : const [],
       priority: _selectedPriority,
@@ -382,10 +382,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                 },
                 time: _reminderTime,
                 onTimeTap: () => _selectTime(context),
-                intervalHours: _intervalHours,
-                onIntervalHoursChanged: (hours) {
+                intervalMinutes: _intervalMinutes,
+                onIntervalMinutesChanged: (minutes) {
                   setState(() {
-                    _intervalHours = hours;
+                    _intervalMinutes = minutes;
                   });
                 },
               ),

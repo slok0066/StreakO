@@ -234,7 +234,9 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                                   Text(
                                     widget.task.reminderType == ReminderType.fixed
                                         ? AppDateUtils.formatTime(widget.task.reminderTime ?? TimeOfDay.now())
-                                        : 'EVERY ${widget.task.intervalHours}H',
+                                        : (widget.task.intervalMinutes! < 60 
+                                            ? 'EVERY ${widget.task.intervalMinutes}M' 
+                                            : 'EVERY ${(widget.task.intervalMinutes! / 60).round()}H'),
                                     style: GoogleFonts.spaceMono(
                                       color: textSecondaryColor,
                                       fontSize: 10.0,
@@ -267,20 +269,30 @@ class _TaskCardState extends State<TaskCard> with SingleTickerProviderStateMixin
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: const Icon(LucideIcons.edit3, size: 16.0),
-                            color: textSecondaryColor,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: widget.onEdit,
+                          GestureDetector(
+                            onTap: widget.onEdit,
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(
+                                LucideIcons.edit3,
+                                size: 16.0,
+                                color: textSecondaryColor,
+                              ),
+                            ),
                           ),
-                          const SizedBox(width: AppSpacing.md),
-                          IconButton(
-                            icon: const Icon(LucideIcons.trash2, size: 16.0),
-                            color: AppColors.accent.withOpacity(0.7),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: widget.onDelete,
+                          const SizedBox(width: AppSpacing.sm),
+                          GestureDetector(
+                            onTap: widget.onDelete,
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(
+                                LucideIcons.trash2,
+                                size: 16.0,
+                                color: AppColors.accent.withOpacity(0.8),
+                              ),
+                            ),
                           ),
                         ],
                       ),

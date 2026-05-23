@@ -20,3 +20,6 @@
 # Ignore warnings from missing Play Store classes referenced by Flutter engine
 -dontwarn com.google.android.play.core.**
 -dontwarn io.flutter.embedding.engine.deferredcomponents.**
+
+# Keep flutter_local_notifications classes
+-keep class com.dexterous.flutterlocalnotifications.** { *; }

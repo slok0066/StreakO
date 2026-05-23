@@ -216,7 +216,7 @@ class TaskDetailScreen extends StatelessWidget {
                           ? 'DISABLED'
                           : (task.reminderType == ReminderType.fixed
                               ? 'FIXED: ${AppDateUtils.formatTime(task.reminderTime ?? TimeOfDay.now())}'
-                              : 'INTERVAL: EVERY ${task.intervalHours} HOUR(S)'),
+                              : 'INTERVAL: EVERY ${task.intervalMinutes! < 60 ? '${task.intervalMinutes} MINUTE(S)' : '${(task.intervalMinutes! / 60).round()} HOUR(S)'}'),
                       textSecondaryColor,
                       task.reminderEnabled ? AppColors.accent : textPrimaryColor,
                     ),

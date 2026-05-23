@@ -32,7 +32,7 @@ class MainActivity : FlutterActivity() {
                         if (pendingTogglesSet != null && pendingTogglesSet.contains(taskId)) {
                             val newPending = HashSet<String>(pendingTogglesSet)
                             newPending.remove(taskId)
-                            prefs.edit().putStringSet("pending_toggles", newPending).apply()
+                            prefs.edit().putStringSet("pending_toggles", newPending).commit()
                         }
                     }
                 }
@@ -98,7 +98,7 @@ class MainActivity : FlutterActivity() {
                     val toggleList = pendingTogglesSet?.toList() ?: emptyList<String>()
                     
                     // Clear pending toggles now that Flutter is consuming them
-                    prefs.edit().remove("pending_toggles").apply()
+                    prefs.edit().remove("pending_toggles").commit()
                     
                     result.success(toggleList)
                 }
@@ -118,7 +118,7 @@ class MainActivity : FlutterActivity() {
             return
         }
         
-        prefs.edit().putString("widget_tasks", jsonString).apply()
+        prefs.edit().putString("widget_tasks", jsonString).commit()
 
         // Notify app widgets that the list data factory changed
         val appWidgetManager = AppWidgetManager.getInstance(this)

@@ -46,7 +46,7 @@ class StreakOWidgetProvider : AppWidgetProvider() {
                         }
                     }
                     if (updated) {
-                        prefs.edit().putString("widget_tasks", jsonArray.toString()).apply()
+                        prefs.edit().putString("widget_tasks", jsonArray.toString()).commit()
                     }
 
                     // 2. Add this task ID to the set of pending background toggles
@@ -57,7 +57,7 @@ class StreakOWidgetProvider : AppWidgetProvider() {
                     } else {
                         newPending.add(taskId)
                     }
-                    prefs.edit().putStringSet("pending_toggles", newPending).apply()
+                    prefs.edit().putStringSet("pending_toggles", newPending).commit()
 
                     // 2.5 Send a package-restricted broadcast so that the active app (MainActivity)
                     // updates the Hive database instantly in real-time

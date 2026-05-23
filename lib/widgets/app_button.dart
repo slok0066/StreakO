@@ -26,19 +26,19 @@ class AppButton extends StatelessWidget {
 
     Color bg;
     Color textColor;
-    Border? border;
+    BorderSide? borderSide;
     double radius = 999.0; // Pill shape
 
     switch (variant) {
       case ButtonVariant.primary:
         bg = isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay;
         textColor = isDark ? AppColors.darkBlack : AppColors.lightBlack;
-        border = null;
+        borderSide = null;
         break;
       case ButtonVariant.secondary:
         bg = Colors.transparent;
         textColor = isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary;
-        border = Border.all(
+        borderSide = BorderSide(
           color: isDark ? AppColors.darkBorderVisible : AppColors.lightBorderVisible,
           width: 1.0,
         );
@@ -46,13 +46,13 @@ class AppButton extends StatelessWidget {
       case ButtonVariant.ghost:
         bg = Colors.transparent;
         textColor = isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary;
-        border = null;
+        borderSide = null;
         radius = 0.0;
         break;
       case ButtonVariant.destructive:
         bg = Colors.transparent;
         textColor = AppColors.accent;
-        border = Border.all(
+        borderSide = const BorderSide(
           color: AppColors.accent,
           width: 1.0,
         );
@@ -62,7 +62,7 @@ class AppButton extends StatelessWidget {
     if (isDisabled) {
       bg = Colors.transparent;
       textColor = isDark ? AppColors.darkTextDisabled : AppColors.lightTextDisabled;
-      border = Border.all(
+      borderSide = BorderSide(
         color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         width: 1.0,
       );
@@ -77,6 +77,7 @@ class AppButton extends StatelessWidget {
           onPressed: isDisabled ? null : onPressed,
           style: TextButton.styleFrom(
             backgroundColor: bg,
+            side: borderSide,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(radius),
             ),
@@ -84,10 +85,6 @@ class AppButton extends StatelessWidget {
           ),
           child: Container(
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              border: border,
-              borderRadius: BorderRadius.circular(radius),
-            ),
             child: Text(
               label.toUpperCase(),
               style: GoogleFonts.spaceMono(

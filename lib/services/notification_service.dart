@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 import '../models/task_model.dart';
 
@@ -23,7 +23,7 @@ class NotificationService {
 
   Future<void> init() async {
     // 1. Initialize timezone database
-    tz.initializeTimeZones();
+    tz_data.initializeTimeZones();
     try {
       final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
       tz.setLocalLocation(tz.getLocation(timeZoneName));
@@ -178,47 +178,74 @@ class NotificationService {
 
       final tzScheduledDate = tz.TZDateTime.from(scheduledDate, tz.local);
 
-      // Using zonedSchedule for precise notification scheduling
-      await _notificationsPlugin.zonedSchedule(
-        id: id,
-        title: 'streakO Reminder: ${task.title}',
-        body: task.description.isNotEmpty ? task.description : 'Keep your streak alive!',
-        scheduledDate: tzScheduledDate,
-        notificationDetails: notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time, // Repeats daily at this time
-        payload: task.id,
-      );
-      debugPrint('Scheduled fixed-time notification for task ${task.id} at ${task.reminderTime}');
-    } else if (task.reminderType == ReminderType.interval && task.intervalHours != null) {
-      // Schedule interval-based reminder (e.g. hourly, every 2 hours, etc.)
+      // Using zonedSchedule for precise notification scheduling with robust fallback
+      try {
+        await _notificationsPlugin.zonedSchedule(
+          id: id,
+          title: 'streakO Reminder: ${task.title}',
+          body: task.description.isNotEmpty ? task.description : 'Keep your streak alive!',
+          scheduledDate: tzScheduledDate,
+          notificationDetails: notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time, // Repeats daily at this time
+          payload: task.id,
+        );
+        debugPrint('Scheduled exact fixed-time notification for task ${task.id} at ${task.reminderTime}');
+      } catch (e) {
+        debugPrint('Exact alarm scheduling failed: $e. Falling back to non-exact allowWhileIdle.');
+        try {
+          await _notificationsPlugin.zonedSchedule(
+            id: id,
+            title: 'streakO Reminder: ${task.title}',
+            body: task.description.isNotEmpty ? task.description : 'Keep your streak alive!',
+            scheduledDate: tzScheduledDate,
+            notificationDetails: notificationDetails,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+            matchDateTimeComponents: DateTimeComponents.time,
+            payload: task.id,
+          );
+          debugPrint('Scheduled non-exact fixed-time notification for task ${task.id}');
+        } catch (err) {
+          debugPrint('Fallback scheduling also failed: $err');
+        }
+      }
+    } else if (task.reminderType == ReminderType.interval && task.intervalMinutes != null) {
+      // Schedule interval-based reminder (e.g. every minute, hourly, etc.)
       RepeatInterval interval;
-      switch (task.intervalHours) {
-        case 1:
-          interval = RepeatInterval.hourly;
-          break;
-        case 2:
-          // Local notifications periodicallyShow supports only hourly, daily, weekly, or everyMinute.
-          // For custom intervals, we fall back to hourly, or schedule a series of fixed-time reminders.
-          // To ensure simplicity and 100% reliability, we map 1 hour to hourly. For others, we also show hourly
-          // or use RepeatInterval.hourly. Let's make it hourly for interval.
-          interval = RepeatInterval.hourly;
-          break;
-        default:
-          interval = RepeatInterval.hourly;
-          break;
+      if (task.intervalMinutes! < 60) {
+        interval = RepeatInterval.everyMinute; // For testing and small intervals
+      } else {
+        interval = RepeatInterval.hourly;
       }
 
-      await _notificationsPlugin.periodicallyShow(
-        id: id,
-        title: 'streakO Check-in: ${task.title}',
-        body: task.description.isNotEmpty ? task.description : 'Track your progress now!',
-        repeatInterval: interval,
-        notificationDetails: notificationDetails,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: task.id,
-      );
-      debugPrint('Scheduled interval notification for task ${task.id} every selected interval.');
+      try {
+        await _notificationsPlugin.periodicallyShow(
+          id: id,
+          title: 'streakO Check-in: ${task.title}',
+          body: task.description.isNotEmpty ? task.description : 'Track your progress now!',
+          repeatInterval: interval,
+          notificationDetails: notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          payload: task.id,
+        );
+        debugPrint('Scheduled exact interval notification for task ${task.id} every selected interval.');
+      } catch (e) {
+        debugPrint('Exact periodic alarm scheduling failed: $e. Falling back to non-exact allowWhileIdle.');
+        try {
+          await _notificationsPlugin.periodicallyShow(
+            id: id,
+            title: 'streakO Check-in: ${task.title}',
+            body: task.description.isNotEmpty ? task.description : 'Track your progress now!',
+            repeatInterval: interval,
+            notificationDetails: notificationDetails,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+            payload: task.id,
+          );
+          debugPrint('Scheduled non-exact periodic notification for task ${task.id}');
+        } catch (err) {
+          debugPrint('Fallback periodic scheduling also failed: $err');
+        }
+      }
     }
   }
 

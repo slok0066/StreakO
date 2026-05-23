@@ -14,7 +14,7 @@ class TaskModel {
   final bool reminderEnabled;
   final TimeOfDay? reminderTime; // For fixed reminder
   final ReminderType reminderType;
-  final int? intervalHours; // For interval reminder
+  final int? intervalMinutes; // For interval reminder
   final RepeatType repeatType;
   final List<int> customDays; // 1 = Monday, 7 = Sunday
   final PriorityLevel priority;
@@ -32,7 +32,7 @@ class TaskModel {
     this.reminderEnabled = false,
     this.reminderTime,
     this.reminderType = ReminderType.fixed,
-    this.intervalHours,
+    this.intervalMinutes,
     this.repeatType = RepeatType.none,
     this.customDays = const [],
     this.priority = PriorityLevel.medium,
@@ -51,7 +51,7 @@ class TaskModel {
     bool? reminderEnabled,
     TimeOfDay? reminderTime,
     ReminderType? reminderType,
-    int? intervalHours,
+    int? intervalMinutes,
     RepeatType? repeatType,
     List<int>? customDays,
     PriorityLevel? priority,
@@ -69,7 +69,7 @@ class TaskModel {
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
       reminderTime: reminderTime ?? this.reminderTime,
       reminderType: reminderType ?? this.reminderType,
-      intervalHours: intervalHours ?? this.intervalHours,
+      intervalMinutes: intervalMinutes ?? this.intervalMinutes,
       repeatType: repeatType ?? this.repeatType,
       customDays: customDays ?? this.customDays,
       priority: priority ?? this.priority,
@@ -90,7 +90,8 @@ class TaskModel {
       'reminderEnabled': reminderEnabled,
       'reminderTime': reminderTime != null ? '${reminderTime!.hour}:${reminderTime!.minute}' : null,
       'reminderType': reminderType.name,
-      'intervalHours': intervalHours,
+      'intervalMinutes': intervalMinutes,
+      'intervalHours': intervalMinutes != null ? (intervalMinutes! / 60).round() : null,
       'repeatType': repeatType.name,
       'customDays': customDays,
       'priority': priority.name,
@@ -109,6 +110,9 @@ class TaskModel {
       parsedTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
     }
 
+    final intervalMinutesVal = json['intervalMinutes'] as int? ?? 
+        (json['intervalHours'] != null ? (json['intervalHours'] as int) * 60 : null);
+
     return TaskModel(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -120,7 +124,7 @@ class TaskModel {
         (e) => e.name == json['reminderType'],
         orElse: () => ReminderType.fixed,
       ),
-      intervalHours: json['intervalHours'] as int?,
+      intervalMinutes: intervalMinutesVal,
       repeatType: RepeatType.values.firstWhere(
         (e) => e.name == json['repeatType'],
         orElse: () => RepeatType.none,

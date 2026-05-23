@@ -11,8 +11,8 @@ class ReminderPicker extends StatelessWidget {
   final ValueChanged<ReminderType> onTypeChanged;
   final TimeOfDay time;
   final VoidCallback onTimeTap;
-  final int intervalHours;
-  final ValueChanged<int> onIntervalHoursChanged;
+  final int intervalMinutes;
+  final ValueChanged<int> onIntervalMinutesChanged;
 
   const ReminderPicker({
     Key? key,
@@ -22,8 +22,8 @@ class ReminderPicker extends StatelessWidget {
     required this.onTypeChanged,
     required this.time,
     required this.onTimeTap,
-    required this.intervalHours,
-    required this.onIntervalHoursChanged,
+    required this.intervalMinutes,
+    required this.onIntervalMinutesChanged,
   }) : super(key: key);
 
   @override
@@ -218,39 +218,37 @@ class ReminderPicker extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [1, 2, 6, 12].map((hours) {
-                      final isSelected = intervalHours == hours;
-                      return Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: OutlinedButton(
-                            onPressed: () => onIntervalHoursChanged(hours),
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              backgroundColor: isSelected
-                                  ? (isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay)
-                                  : Colors.transparent,
-                              side: BorderSide(
-                                color: isSelected
-                                    ? Colors.transparent
-                                    : borderVisibleColor,
-                                width: 1.0,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                            child: Text(
-                              '${hours}H',
-                              style: GoogleFonts.spaceMono(
-                                color: isSelected
-                                    ? (isDark ? AppColors.darkBlack : AppColors.lightBlack)
-                                    : textPrimaryColor,
-                                fontSize: 13.0,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: [1, 5, 15, 30, 60, 120, 360, 720].map((minutes) {
+                      final isSelected = intervalMinutes == minutes;
+                      String label = minutes < 60 ? '${minutes}M' : '${(minutes / 60).round()}H';
+                      return OutlinedButton(
+                        onPressed: () => onIntervalMinutesChanged(minutes),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          backgroundColor: isSelected
+                              ? (isDark ? AppColors.darkTextDisplay : AppColors.lightTextDisplay)
+                              : Colors.transparent,
+                          side: BorderSide(
+                            color: isSelected
+                                ? Colors.transparent
+                                : borderVisibleColor,
+                            width: 1.0,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        child: Text(
+                          label,
+                          style: GoogleFonts.spaceMono(
+                            color: isSelected
+                                ? (isDark ? AppColors.darkBlack : AppColors.lightBlack)
+                                : textPrimaryColor,
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       );
